@@ -75,6 +75,9 @@ export async function middleware(request: NextRequest) {
 
   // 2. Logged in -> Verify approval and roles
   if (user) {
+    const devEmail = process.env.NEXT_PUBLIC_DEV_ADMIN_EMAIL;
+    const isDevAdmin = devEmail && user.email === devEmail;
+
     // Fetch profile to check approval status and role
     const { data: profile } = await supabase
       .from('profiles')
@@ -82,8 +85,11 @@ export async function middleware(request: NextRequest) {
       .eq('id', user.id)
       .single();
 
+    const role = isDevAdmin ? 'admin' : (profile?.role || 'desk');
+    const isApproved = isDevAdmin ? true : !!profile?.is_approved;
+
     // 2.1 User is not approved yet -> force redirect to /pending-approval
-    if (!profile?.is_approved) {
+    if (!isApproved) {
       if (!isPendingPage && !isLoginPage && !isAuthCallback && !isUnauthorizedPage) {
         return NextResponse.redirect(new URL('/pending-approval', request.url));
       }
@@ -96,8 +102,6 @@ export async function middleware(request: NextRequest) {
     }
 
     // 2.3 RBAC Route Protection
-    const role = profile.role;
-
     if (pathname.startsWith('/admin') && role !== 'admin') {
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }

@@ -60,6 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     try {
+      // Get current authenticated user details from Supabase auth
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const devEmail = process.env.NEXT_PUBLIC_DEV_ADMIN_EMAIL;
+      const isDevAdmin = devEmail && currentUser?.email === devEmail;
+
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -68,9 +73,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (error) {
         console.error('Failed to fetch profile:', error);
-        setProfile(null);
+        if (isDevAdmin && currentUser) {
+          // Grant mock admin profile for developer account even if DB profiles entry is missing
+          setProfile({
+            id: userId,
+            email: currentUser.email!,
+            name: currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || 'Developer Admin',
+            role: 'admin',
+            is_approved: true,
+            updated_at: new Date().toISOString(),
+            created_at: new Date().toISOString()
+          });
+        } else {
+          setProfile(null);
+        }
       } else {
-        setProfile(data as Profile);
+        const profileData = data as Profile;
+        if (isDevAdmin) {
+          // Force override role/approval for developer email bypass
+          setProfile({
+            ...profileData,
+            role: 'admin',
+            is_approved: true
+          });
+        } else {
+          setProfile(profileData);
+        }
       }
     } catch (err) {
       console.error('Profile fetch error:', err);
