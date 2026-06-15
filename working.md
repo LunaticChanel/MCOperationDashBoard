@@ -71,9 +71,24 @@
   * **월간 제품 판매 실적 (`sales`)**: 직원별 화장품/스킨케어 판매 리더보드 및 3D 시상대 시각화 구현.
   * **월간 근태 (`overtime`)**: 초과근무 시간 신청서 접수 및 결재 상태 관리판 구현.
 * **식대 관리 (`meals`) 구현 완료**: 직원 식대 청구 및 부서별 월 누적액 관리.
+* **Supabase 실시간 연동 인프라 활성화 및 환경변수 셋업 완료**
+  * `.env.local` 파일에 Supabase Project URL 및 Anon API Key 정상 주입 완료.
+  * 로컬 개발 서버 환경변수 캐시 제거를 위해 프로세스 재구동 완료.
+* **개발자 프리패스 및 최고 관리자(Admin) 권한 가드 구현 완료**
+  * `.env.local` 내 `NEXT_PUBLIC_DEV_ADMIN_EMAIL=benyny3325@gmail.com` 설정 적용.
+  * `AuthContext.tsx` 내 로그인 프로필 정보 로드 시, 해당 개발자 이메일 계정이 들어오면 DB 조회 여부와 무관하게 `role: 'admin'`, `is_approved: true` 상태를 강제 주입하도록 로직 수정.
+  * Next.js Middleware/Proxy 가드에서도 동일한 개발자 메일을 식별하여 가입 승인 대기실(`/pending-approval`)을 생략(Bypass)하고 어드민 메뉴 보호 제어를 통과할 수 있도록 우회 규칙 예외 적용.
+* **Next.js 16 규격 변경 대응 (Middleware to Proxy 리팩토링) 완료**
+  * Next.js 16(React 19)의 Deprecate 파일 규격 변경 경고(`The 'middleware' file convention is deprecated`) 해결.
+  * 기존 `src/middleware.ts` 파일을 삭제하고 최신 규격인 **`src/proxy.ts`** 파일로 이전 완료.
+  * 가드 핸들러 함수명을 `middleware`에서 `proxy`로 변경하여 빌드 경고 완전 제거 및 프로덕션 컴파일 무결성 검증 통과.
+* **깃허브(GitHub) 한국어 이력 상세 커밋 및 푸쉬 자동화 완료**
+  * 깃허브 원격 저장소(`LunaticChanel/MCOperationDashBoard`) 연동 및 브랜치 초기화(`main`) 완료.
+  * 수정한 소스코드에 대한 이력을 상세하고 친절한 한국어로 명세하여 커밋 및 Push 완료.
 
 ---
 
 ## 🚀 진행 중인 작업 (Next Step)
-* **린트(ESLint) 확인 및 빌드 테스트**
-  * `npm run lint` 통과 확인 및 빌드 확인.
+* **구글 OAuth 연동 설정 가이드 및 배포 사이트 주소 연결**
+  * 구글 클라우드 콘솔 발급 키의 Supabase Provider 바인딩 작업 지원.
+  * Vercel 배포 주소(Site URL 및 Redirect URLs)의 Supabase URL Configuration 화이트리스트 등록 상태 모니터링.
